@@ -59,7 +59,8 @@
 														// so just add all scripts as fast as possible. FF4 has async=false to do the same
 			xhr:bTRUE, // use XHR trick to preload local scripts
 			dupe:bTRUE, // allow duplicate scripts? defaults to true now 'cause is slightly more performant that way (less checks)
-			base:"", // base path to prepend to all non-absolute-path scripts
+			base:"", // base path to prepend to all non-absolute-path scripts,
+			append:"", // query string to append to all non-absolute-path scripts,
 			which:sHEAD // which DOM object ("head" or "body") to append scripts to
 		}
 	;
@@ -70,11 +71,13 @@
 	append_to[sBODY] = fGETELEMENTSBYTAGNAME(sBODY);
 	
 	function isFunc(func) { return fOBJTOSTRING.call(func) === sTYPEFUNC; }
-	function canonicalScriptURI(src,base_path) {
+	function canonicalScriptURI(src,base_path,append) {
 		var regex = /^\w+\:\/\//, ret; 
 		if (typeof src != sSTRING) src = "";
 		if (typeof base_path != sSTRING) base_path = "";
+		if (typeof append != sSTRING) append = "";
 		ret = ((/^\/\//.test(src)) ? oWINLOC.protocol : "") + src;
+		ret = ret + (!regex.test(ret) && append ? ((src.indexOf('?') === -1 ? '?' : '&') + append) : '');
 		ret = (regex.test(ret) ? "" : base_path) + ret;
 		return ((regex.test(ret) ? "" : (ret.charAt(0) === "/" ? DOCROOT : PAGEROOT)) + ret);
 	}
@@ -98,6 +101,7 @@
 			_auto_wait = opts[sPRESERVE],
 			_which = opts.which,
 			_base_path = opts.base,
+			_append = opts.append,
 			waitFunc = fNOOP,
 			scripts_loading = bFALSE,
 			publicAPI,
@@ -214,7 +218,7 @@
 			if (typeof o == "undefined" || !o) return; // skip over this script call if there's nothing to load
 			if (o.allowDup == nNULL) o.allowDup = opts.dupe;
 			var src = o.src, type = o.type, charset = o.charset, allowDup = o.allowDup, 
-				src_uri = canonicalScriptURI(src,_base_path), scriptentry, same_domain = sameDomain(src_uri);
+				src_uri = canonicalScriptURI(src,_base_path,_append), scriptentry, same_domain = sameDomain(src_uri);
 			if (typeof charset != sSTRING) charset = nNULL;
 			allowDup = !(!allowDup);
 			if (!allowDup && 
@@ -316,7 +320,7 @@
 	function processOpts(opts) {
 		var k, newOpts = {}, 
 			boolOpts = {"UseCachePreload":"cache","UseLocalXHR":"xhr","UsePreloading":sPRELOAD,"AlwaysPreserveOrder":sPRESERVE,"AllowDuplicates":"dupe"},
-			allOpts = {"AppendTo":sWHICH,"BasePath":"base"}
+			allOpts = {"AppendTo":sWHICH,"BasePath":"base","Append":"append"}
 		;
 		for (k in boolOpts) allOpts[k] = boolOpts[k];
 		newOpts.order = !(!global_defs.order);

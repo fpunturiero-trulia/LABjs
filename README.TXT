@@ -68,6 +68,8 @@ The configuration options available are:
 
 * BasePath:{string} (default ""): a path string to prepend to every script request's URL
 
+* Append:{string} (default ""): a string to append to every script request's query string. Only applies to non-absolute script URLs.
+
 
 Special Note: Protocol-relative URLs
 
